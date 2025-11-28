@@ -1,28 +1,5 @@
-# Cohort-Analysis
--- Task 1: Tính số KH quay trở lại của sản phẩm tiền điện của nhóm KH tháng 1/2017
-
-WITH table_first AS (
-        SELECT customer_id, order_id, transaction_date
-        , MIN ( MONTH (transaction_date)) OVER (PARTITION BY customer_id) as first_month
-    FROM payment_history_17 as his_17
-    JOIN product as pro
-        ON his_17.product_id = pro.product_number
-    WHERE message_id = 1 --- đơn hàng thành công
-        AND sub_category = 'Electricity'
-)
-, table_month as (
-    SELECT *
-    , MONTH (transaction_date) - first_month as month_n
-    FROM table_first
-)
-, table_retained as (
-    SELECT first_month, month_n
-        , COUNT (DISTINCT customer_id) as retained_customer
-    FROM table_month
-    WHERE first_month = 1
-    GROUP BY first_month, month_n
-)    
-SELECT *
-    , original_customer = MAX (retained_customer) OVER ()
-    , CAST (retained_customer AS DECIMAL) / MAX (retained_customer) OVER ()
-FROM table_retained
+# Advanced SQL practices 
+/* Introduction — Cohort Analysis & Customer Segmentation
+Understanding customer behavior over time is essential for improving retention and designing effective growth strategies. Cohort analysis helps track groups of customers based on when they first made a purchase and measures how many of them return in later periods. This provides clear insight into retention patterns and the impact of campaigns such as promotions or discount vouchers.
+Complementing this, customer segmentation—using techniques like RFM analysis—groups customers based on recency, frequency, and monetary value. These segments support targeted actions such as personalized recommendations, retention emails, live-chat support, or promotional campaigns designed for high-value or at-risk customers.
+In this section, we use SQL to perform both analyses for the Electricity product, helping identify customer lifecycle trends and actionable opportunities to improve overall retention./*
