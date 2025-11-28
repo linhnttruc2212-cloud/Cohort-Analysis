@@ -1,0 +1,29 @@
+Cohort-Analysis
+
+-- Task 1: Tính số KH quay trở lại của sản phẩm tiền điện của nhóm KH tháng 1/2017
+
+WITH table_first AS (
+        SELECT customer_id, order_id, transaction_date
+        , MIN ( MONTH (transaction_date)) OVER (PARTITION BY customer_id) as first_month
+    FROM payment_history_17 as his_17
+    JOIN product as pro
+        ON his_17.product_id = pro.product_number
+    WHERE message_id = 1 --- đơn hàng thành công
+        AND sub_category = 'Electricity'
+)
+, table_month as (
+    SELECT *
+    , MONTH (transaction_date) - first_month as month_n
+    FROM table_first
+)
+, table_retained as (
+    SELECT first_month, month_n
+        , COUNT (DISTINCT customer_id) as retained_customer
+    FROM table_month
+    WHERE first_month = 1
+    GROUP BY first_month, month_n
+)    
+SELECT *
+    , original_customer = MAX (retained_customer) OVER ()
+    , CAST (retained_customer AS DECIMAL) / MAX (retained_customer) OVER ()
+FROM table_retained
